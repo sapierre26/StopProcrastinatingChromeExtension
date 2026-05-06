@@ -1,12 +1,11 @@
 # StopProcrastinatingChromeExtension
 
-Hello
+How to Pull (download changes from GitHub):<br>
+git pull<br>
 
-How to Pull (download changes from GitHub):
-git pull
+<br>
 
-
-How to Push (upload your changes to GitHub):
-git add .
-git commit -m "my message name"
-git push
+How to Push (upload your changes to GitHub):<br>
+git add .<br>
+git commit -m "my message name"<br>
+git push<br>
