@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Two Tab Extension</title>
+
+  <link rel="stylesheet" href="popup.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="app-header">
+      <h1>Alpaca Farm</h1>
+      <p>an anti-procrastination tool</p>
+    </header>
+
+    <nav class="tab-bar" aria-label="Extension sections">
+      <button class="tab-button active" data-tab-target="tab-one">
+        My Canvas
+      </button>
+
+      <button class="tab-button" data-tab-target="tab-two">
+        The Farm
+      </button>
+    </nav>
+
+    <section id="tab-one" class="tab-panel active"></section>
+
+    <section id="tab-two" class="tab-panel"></section>
+  </main>
+
+  <script type="module" src="popup.js"></script>
+</body>
+</html>

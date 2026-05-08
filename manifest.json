@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Alpaca Farm",
+  "version": "0.0.1",
+  "description": "An anti-procrastination extension featuring an alpaca farm.",
+  "action": {
+    "default_title": "Open Alpaca Farm",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": []
+}
