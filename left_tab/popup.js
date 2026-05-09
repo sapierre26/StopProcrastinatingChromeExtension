@@ -304,3 +304,88 @@ const testAssignment = {
 };
 
 console.log("Farm reward:", calculateFarmReward(testAssignment));
+function calculateFarmReward(assignment) {
+  const dueDate = new Date(assignment.due_at);
+  const submittedDate = new Date(assignment.submitted_at);
+
+  const turnedInOnTime = submittedDate <= dueDate;
+  const hoursEarly = (dueDate - submittedDate) / (1000 * 60 * 60);
+
+  let reward = {
+    earnedAlpaca: false,
+    accessory: null,
+    weather: "cloudy"
+  };
+
+  if (turnedInOnTime) {
+    reward.earnedAlpaca = true;
+  }
+
+  if (hoursEarly >= 48) {
+    reward.accessory = "👑";
+  } else if (hoursEarly >= 24) {
+    reward.accessory = "🌸";
+  } else if (hoursEarly >= 1) {
+    reward.accessory = "🧣";
+  } else {
+    reward.accessory = "";
+  }
+
+  if (assignment.grade >= 90) {
+    reward.weather = "sunny";
+  } else if (assignment.grade >= 75) {
+    reward.weather = "cloudy";
+  } else if (assignment.grade >= 60) {
+    reward.weather = "rainy";
+  } else {
+    reward.weather = "stormy";
+  }
+
+  return reward;
+}
+
+function renderFarm(assignment) {
+  const reward = calculateFarmReward(assignment);
+
+  const farmScene = document.getElementById("farmScene");
+  const weatherIcon = document.getElementById("weatherIcon");
+  const accessory = document.getElementById("accessory");
+  const alpaca = document.getElementById("alpaca");
+  const farmMessage = document.getElementById("farmMessage");
+  const assignmentInfo = document.getElementById("assignmentInfo");
+
+  farmScene.className = `farm-scene ${reward.weather}`;
+
+  if (reward.weather === "sunny") {
+    weatherIcon.textContent = "☀️";
+  } else if (reward.weather === "cloudy") {
+    weatherIcon.textContent = "☁️";
+  } else if (reward.weather === "rainy") {
+    weatherIcon.textContent = "🌧️";
+  } else {
+    weatherIcon.textContent = "⛈️";
+  }
+
+  if (reward.earnedAlpaca) {
+    alpaca.textContent = "🦙";
+    accessory.textContent = reward.accessory;
+    farmMessage.textContent = "You earned an alpaca!";
+  } else {
+    alpaca.textContent = "🌱";
+    accessory.textContent = "";
+    farmMessage.textContent = "Turn in an assignment on time to grow your farm!";
+  }
+
+  assignmentInfo.textContent =
+    `${assignment.name} • Grade: ${assignment.grade}% • Weather: ${reward.weather}`;
+}
+
+// Fake Canvas assignment for now
+const testAssignment = {
+  name: "Math Homework",
+  due_at: "2026-05-10T23:59:00",
+  submitted_at: "2026-05-09T20:00:00",
+  grade: 95
+};
+
+renderFarm(testAssignment);
