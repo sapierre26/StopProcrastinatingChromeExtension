@@ -257,3 +257,50 @@ function csvEscape(value) {
   }
   return text;
 }
+function calculateFarmReward(assignment) {
+  const dueDate = new Date(assignment.due_at);
+  const submittedDate = new Date(assignment.submitted_at);
+
+  const turnedInOnTime = submittedDate <= dueDate;
+  const hoursEarly = (dueDate - submittedDate) / (1000 * 60 * 60);
+
+  let reward = {
+    earnedAlpaca: false,
+    accessory: null,
+    weather: "cloudy"
+  };
+
+  if (turnedInOnTime) {
+    reward.earnedAlpaca = true;
+  }
+
+  if (hoursEarly >= 48) {
+    reward.accessory = "gold crown";
+  } else if (hoursEarly >= 24) {
+    reward.accessory = "flower hat";
+  } else if (hoursEarly >= 1) {
+    reward.accessory = "scarf";
+  }
+
+  if (assignment.grade >= 90) {
+    reward.weather = "sunny";
+  } else if (assignment.grade >= 75) {
+    reward.weather = "partly cloudy";
+  } else if (assignment.grade >= 60) {
+    reward.weather = "rainy";
+  } else {
+    reward.weather = "stormy";
+  }
+
+  return reward;
+}
+
+// Test assignment for now
+const testAssignment = {
+  name: "Math Homework",
+  due_at: "2026-05-10T23:59:00",
+  submitted_at: "2026-05-09T20:00:00",
+  grade: 95
+};
+
+console.log("Farm reward:", calculateFarmReward(testAssignment));
