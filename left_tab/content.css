@@ -1,0 +1,37 @@
+.cdt-badge {
+  align-items: center;
+  background: #0f766e;
+  border-radius: 999px;
+  color: #ffffff;
+  display: inline-flex;
+  font: 600 11px/1.2 Arial, sans-serif;
+  gap: 4px;
+  margin-left: 8px;
+  max-width: 170px;
+  padding: 4px 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.cdt-badge[data-cdt-submitted="true"] {
+  background: #166534;
+}
+
+.cdt-badge[data-cdt-submitted="false"] {
+  background: #92400e;
+}
+
+.cdt-toast {
+  background: #111827;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.24);
+  color: #f9fafb;
+  font: 500 13px/1.4 Arial, sans-serif;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 10px 12px;
+  position: fixed;
+  right: 16px;
+  top: 16px;
+  z-index: 2147483647;
+}
