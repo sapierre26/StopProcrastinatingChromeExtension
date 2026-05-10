@@ -246,3 +246,157 @@ p {
   background: #0f766e;
   color: #ffffff;
 }
+.farm-container {
+  width: 330px;
+  padding: 14px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.farm-container h1 {
+  margin: 8px 0 12px;
+  font-size: 24px;
+  color: #3f7d3f;
+}
+
+.farm-scene {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  border: 4px solid #5fa85f;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(#8ed8ff 0%, #b8ecff 55%, #78c850 56%, #4caf50 100%);
+}
+
+.farm-scene.sunny {
+  background: linear-gradient(#8ed8ff 0%, #b8ecff 55%, #78c850 56%, #4caf50 100%);
+}
+
+.farm-scene.cloudy {
+  background: linear-gradient(#bfc7d1 0%, #d8dde3 55%, #78c850 56%, #4caf50 100%);
+}
+
+.farm-scene.rainy {
+  background: linear-gradient(#6f8799 0%, #aab7c4 55%, #5da85b 56%, #3e8f3e 100%);
+}
+
+.farm-scene.stormy {
+  background: linear-gradient(#2f3b46 0%, #5f6b78 55%, #4f8a4f 56%, #2f6f2f 100%);
+}
+
+.weather-icon {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 42px;
+  z-index: 3;
+}
+
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50px;
+  opacity: 0.9;
+}
+
+.cloud::before,
+.cloud::after {
+  content: "";
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+}
+
+.cloud-one {
+  width: 90px;
+  height: 32px;
+  top: 45px;
+  left: 30px;
+}
+
+.cloud-one::before {
+  width: 42px;
+  height: 42px;
+  top: -20px;
+  left: 10px;
+}
+
+.cloud-one::after {
+  width: 50px;
+  height: 50px;
+  top: -26px;
+  left: 35px;
+}
+
+.cloud-two {
+  width: 70px;
+  height: 26px;
+  top: 85px;
+  right: 35px;
+}
+
+.cloud-two::before {
+  width: 34px;
+  height: 34px;
+  top: -16px;
+  left: 8px;
+}
+
+.cloud-two::after {
+  width: 40px;
+  height: 40px;
+  top: -20px;
+  left: 30px;
+}
+
+.alpaca-pen {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+
+.alpaca {
+  font-size: 82px;
+}
+
+.accessory {
+  font-size: 34px;
+  margin-bottom: -20px;
+  position: relative;
+  z-index: 5;
+}
+
+.grass {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 65px;
+  background: repeating-linear-gradient(
+    90deg,
+    #3fa83f,
+    #3fa83f 8px,
+    #4fbd4f 8px,
+    #4fbd4f 16px
+  );
+}
+
+.farm-info {
+  margin-top: 12px;
+  background: #f1ffe8;
+  border: 2px solid #9bd48f;
+  border-radius: 14px;
+  padding: 10px;
+}
+
+#farmMessage {
+  font-weight: bold;
+  margin: 4px 0;
+}
+
+#assignmentInfo {
+  font-size: 13px;
+  margin: 4px 0;
+}
