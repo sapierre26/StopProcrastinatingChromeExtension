@@ -3,7 +3,7 @@
   "name": "Stop Procrastinating: Alpaca Farm",
   "version": "0.1.0",
   "description": "Tracks Canvas assignments and turns progress into an alpaca farm.",
-  "permissions": ["storage", "activeTab", "alarms", "tabs"],
+  "permissions": ["storage", "activeTab", "tabs"],
   "host_permissions": ["https://*/*"],
   "background": {
     "service_worker": "background.js"

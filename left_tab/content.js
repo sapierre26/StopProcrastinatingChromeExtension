@@ -4,14 +4,12 @@
   const BADGE_CLASS = "cdt-badge";
   const TOAST_CLASS = "cdt-toast";
   const SCAN_DELAY_MS = 900;
-  const AUTO_SCAN_INTERVAL_MS = 5 * 60 * 1000;
   const MAX_CARD_TEXT_LENGTH = 2200;
   const MAX_API_PAGES = 8;
   const MAX_DASHBOARD_COURSES = 16;
 
   let scanTimer = null;
   let lastScanSignature = "";
-  let observer = null;
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (message && message.type === "CDT_SCAN_NOW") {
@@ -25,31 +23,9 @@
     return;
   }
 
+  // Run once when Chrome injects this content script after a page load or refresh.
+  // The URL/page check above prevents non-Canvas pages from doing any work.
   scheduleScan({ showToast: false });
-
-  observer = new MutationObserver(() => {
-    scheduleScan({ showToast: false });
-  });
-
-  observer.observe(document.documentElement, {
-    childList: true,
-    subtree: true,
-    characterData: true
-  });
-
-  window.setInterval(() => {
-    scheduleScan({ showToast: false });
-  }, AUTO_SCAN_INTERVAL_MS);
-
-  window.addEventListener("focus", () => {
-    scheduleScan({ showToast: false });
-  });
-
-  document.addEventListener("visibilitychange", () => {
-    if (!document.hidden) {
-      scheduleScan({ showToast: false });
-    }
-  });
 
   function scheduleScan(options) {
     window.clearTimeout(scanTimer);
@@ -738,17 +714,7 @@
 
   function isLikelyCanvasPage() {
     const host = location.hostname.toLowerCase();
-    if (host.endsWith(".instructure.com")) {
-      return true;
-    }
-    if (/\/courses\/\d+/.test(location.pathname) && document.querySelector("#content, #application, .ic-app")) {
-      return true;
-    }
-    return Boolean(
-      document.querySelector("meta[name='csrf-token']") &&
-      document.querySelector("#content, #application, .ic-app, #breadcrumbs") &&
-      /canvas|dashboard|courses|assignments/i.test(document.title)
-    );
+    return (host.startsWith("canvas.calpoly.edu/"));
   }
 
   function getCourseIdFromUrl(value) {
