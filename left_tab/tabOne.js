@@ -3,85 +3,74 @@ const LAST_SCAN_KEY = "canvas_due_tracker_last_scan";
 
 export function initializeTabOne(root = document) {
   const elements = {
-      lastScan: root.querySelector("#lastScan"),
-      openCount: root.querySelector("#openCount"),
-      submittedCount: root.querySelector("#submittedCount"),
-      overdueCount: root.querySelector("#overdueCount"),
-      assignmentList: root.querySelector("#assignmentList"),
-      emptyState: root.querySelector("#emptyState"),
-      rescanButton: root.querySelector("#rescanButton"),
-      exportButton: root.querySelector("#exportButton"),
-      clearButton: root.querySelector("#clearButton"),
-      filters: Array.from(root.querySelectorAll(".filter"))
-    };
+    storageStatus: root.querySelector("#storageStatus"),
+    openCount: root.querySelector("#openCount"),
+    submittedCount: root.querySelector("#submittedCount"),
+    overdueCount: root.querySelector("#overdueCount"),
+    assignmentList: root.querySelector("#assignmentList"),
+    emptyState: root.querySelector("#emptyState")
+  };
 
-  if (!elements.assignmentList || !elements.rescanButton) {
-    console.warn("Canvas tracker markup was not found.");
+  if (!elements.assignmentList) {
+    console.warn("Canvas assignment display markup was not found.");
     return;
   }
 
-  let assignments = [];
-  let activeFilter = "all";
-  let lastScanState = null;
+  loadAndRenderFromStorage();
 
-  init();
-
-  function init() {
-    bindEvents();
-    loadAssignments();
-  }
-
-  function bindEvents() {
-    elements.rescanButton.addEventListener("click", rescanCurrentTab);
-    elements.exportButton.addEventListener("click", exportCsv);
-    elements.clearButton.addEventListener("click", clearAssignments);
-
-    for (const filter of elements.filters) {
-      filter.addEventListener("click", () => {
-        activeFilter = filter.dataset.filter;
-        elements.filters.forEach((button) => button.classList.toggle("isActive", button === filter));
-        render();
-      });
+  // Listen for extension-local storage changes produced by canvas_integration.
+  // This intentionally does not fetch Canvas data or message any browser tabs.
+  chrome.storage.onChanged.addListener((changes, areaName) => {
+    if (areaName === "local" && (changes[ASSIGNMENTS_KEY] || changes[LAST_SCAN_KEY])) {
+      loadAndRenderFromStorage();
     }
+  });
 
-    chrome.storage.onChanged.addListener((changes, areaName) => {
-      if (areaName === "local" && (changes[ASSIGNMENTS_KEY] || changes[LAST_SCAN_KEY])) {
-        loadAssignments();
-      }
-    });
-  }
-
-  async function loadAssignments() {
+  async function loadAndRenderFromStorage() {
     const result = await chrome.storage.local.get({
       [ASSIGNMENTS_KEY]: {},
       [LAST_SCAN_KEY]: null
     });
 
-    assignments = Object.values(result[ASSIGNMENTS_KEY] || {}).sort(sortAssignments);
-    lastScanState = result[LAST_SCAN_KEY];
-    render();
+    const assignmentData = Object.values(result[ASSIGNMENTS_KEY] || {}).sort(sortAssignments);
+    const lastScan = result[LAST_SCAN_KEY];
+
+    // FOLLOW-UP: `assignmentData` is the local assignment data saved by
+    // canvas_integration. This is the display layer hook: filter, group,
+    // decorate, or render this data however you want from here.
+    renderAssignments(assignmentData, lastScan);
   }
 
-  function render() {
+  function renderAssignments(assignments, lastScan) {
     const open = assignments.filter((assignment) => !assignment.submitted);
     const submitted = assignments.filter((assignment) => assignment.submitted);
     const overdue = assignments.filter(isOverdue);
-    const visibleAssignments = assignments.filter(matchesActiveFilter);
 
-    elements.openCount.textContent = open.length;
-    elements.submittedCount.textContent = submitted.length;
-    elements.overdueCount.textContent = overdue.length;
-    elements.lastScan.textContent = lastScanState?.at
-      ? `Last scan ${formatRelative(lastScanState.at)}`
-      : "No scans yet";
+    elements.openCount.textContent = String(open.length);
+    elements.submittedCount.textContent = String(submitted.length);
+    elements.overdueCount.textContent = String(overdue.length);
+    elements.storageStatus.textContent = getStorageStatusText(lastScan);
 
     elements.assignmentList.innerHTML = "";
-    elements.emptyState.hidden = visibleAssignments.length > 0;
-    elements.assignmentList.hidden = visibleAssignments.length === 0;
+    elements.emptyState.hidden = assignments.length > 0;
+    elements.assignmentList.hidden = assignments.length === 0;
 
-    for (const assignment of visibleAssignments) {
+    for (const assignment of assignments) {
       elements.assignmentList.appendChild(renderAssignment(assignment));
     }
+  }
+
+  function getStorageStatusText(lastScan) {
+    if (!lastScan?.at) {
+      return "Listening for saved Canvas assignment data.";
+    }
+    if (lastScan.status === "error") {
+      return `Last Canvas scan failed ${formatRelative(lastScan.at)}.`;
+    }
+    if (lastScan.status === "started") {
+      return `Canvas scan started ${formatRelative(lastScan.at)}.`;
+    }
+    return `Last updated ${formatRelative(lastScan.at)} from ${lastScan.host || "Canvas"}.`;
   }
 
   function renderAssignment(assignment) {
@@ -93,14 +82,14 @@ export function initializeTabOne(root = document) {
 
     const title = document.createElement("a");
     title.className = "assignmentTitle";
-    title.href = assignment.sourceUrl || assignment.pageUrl || "https://canvas.instructure.com/";
+    title.href = assignment.sourceUrl || assignment.pageUrl || "https://canvas.calpoly.edu/";
     title.target = "_blank";
     title.rel = "noreferrer";
-    title.textContent = assignment.title;
+    title.textContent = assignment.title || "Untitled assignment";
 
     const status = document.createElement("span");
     status.className = `status ${statusClass(assignment)}`;
-    status.textContent = isOverdue(assignment) ? "Overdue" : assignment.status;
+    status.textContent = isOverdue(assignment) ? "Overdue" : assignment.status || "Assigned";
 
     const meta = document.createElement("div");
     meta.className = "meta";
@@ -121,76 +110,6 @@ export function initializeTabOne(root = document) {
     return line;
   }
 
-  async function rescanCurrentTab() {
-    elements.rescanButton.disabled = true;
-
-    try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) {
-        return;
-      }
-
-      await chrome.tabs.sendMessage(tab.id, { type: "CDT_SCAN_NOW" });
-      await loadAssignments();
-    } catch (error) {
-      elements.lastScan.textContent = "Open a Canvas tab, then scan.";
-    } finally {
-      elements.rescanButton.disabled = false;
-    }
-  }
-
-  async function clearAssignments() {
-    if (!confirm("Clear all tracked assignments?")) {
-      return;
-    }
-
-    await chrome.storage.local.set({
-      [ASSIGNMENTS_KEY]: {},
-      [LAST_SCAN_KEY]: null
-    });
-    await loadAssignments();
-  }
-
-  function exportCsv() {
-    if (!assignments.length) {
-      return;
-    }
-
-    const header = ["Title", "Course", "Due", "Due ISO", "Status", "Submitted", "Last Seen", "URL"];
-    const rows = assignments.map((assignment) => [
-      assignment.title,
-      assignment.course,
-      assignment.dueText,
-      assignment.dueISO || "",
-      assignment.status,
-      assignment.submitted ? "yes" : "no",
-      assignment.lastSeenAt || "",
-      assignment.sourceUrl || assignment.pageUrl || ""
-    ]);
-    const csv = [header, ...rows].map((row) => row.map(csvEscape).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = `canvas-due-tracker-${new Date().toISOString().slice(0, 10)}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function matchesActiveFilter(assignment) {
-    if (activeFilter === "submitted") {
-      return assignment.submitted;
-    }
-    if (activeFilter === "open") {
-      return !assignment.submitted;
-    }
-    if (activeFilter === "overdue") {
-      return isOverdue(assignment);
-    }
-    return true;
-  }
-
   function sortAssignments(a, b) {
     const aTime = a.dueISO ? new Date(a.dueISO).getTime() : Number.MAX_SAFE_INTEGER;
     const bTime = b.dueISO ? new Date(b.dueISO).getTime() : Number.MAX_SAFE_INTEGER;
@@ -201,7 +120,7 @@ export function initializeTabOne(root = document) {
     if (aTime !== bTime) {
       return aTime - bTime;
     }
-    return a.title.localeCompare(b.title);
+    return String(a.title || "").localeCompare(String(b.title || ""));
   }
 
   function isOverdue(assignment) {
@@ -215,7 +134,7 @@ export function initializeTabOne(root = document) {
     if (isOverdue(assignment)) {
       return "overdue";
     }
-    return assignment.status || "due";
+    return String(assignment.status || "assigned").toLowerCase().replace(/[^a-z0-9_-]/g, "");
   }
 
   function formatDue(assignment) {
@@ -224,6 +143,10 @@ export function initializeTabOne(root = document) {
     }
 
     const due = new Date(assignment.dueISO);
+    if (Number.isNaN(due.getTime())) {
+      return assignment.dueText || "Unknown";
+    }
+
     return `${due.toLocaleDateString([], {
       month: "short",
       day: "numeric",
@@ -240,6 +163,10 @@ export function initializeTabOne(root = document) {
     }
 
     const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return "Unknown";
+    }
+
     const diffMs = date.getTime() - Date.now();
     const absMs = Math.abs(diffMs);
     const units = [
@@ -256,13 +183,5 @@ export function initializeTabOne(root = document) {
     }
 
     return "just now";
-  }
-
-  function csvEscape(value) {
-    const text = String(value ?? "");
-    if (/[",\n]/.test(text)) {
-      return `"${text.replace(/"/g, '""')}"`;
-    }
-    return text;
   }
 }
