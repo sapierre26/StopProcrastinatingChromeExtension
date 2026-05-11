@@ -1,64 +1,89 @@
-/*
-  Background service worker.
-
-  This file is for extension-level behavior that should not live inside
-  the popup UI.
-
-  Good future uses:
-  - Listen for extension install/update events
-  - Handle messages from popup.js
-  - Work with chrome.tabs, chrome.storage, chrome.scripting, alarms, etc.
-  - Run logic that should continue independently of the popup being open
-
-  Important:
-  Because manifest.json defines action.default_popup, clicking the toolbar icon
-  opens popup.html. The action.onClicked event is not fired for that click.
-*/
+const ASSIGNMENTS_KEY = "canvas_due_tracker_assignments";
+const AUTO_SCAN_ALARM = "canvas_due_tracker_auto_scan";
+const AUTO_SCAN_PERIOD_MINUTES = 5;
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Two Tab Popup Framework installed.");
+  ensureAutoScanAlarm();
+  updateBadge();
 });
 
-/*
-  Example future message listener.
+chrome.runtime.onStartup.addListener(() => {
+  ensureAutoScanAlarm();
+  updateBadge();
+});
 
-  popup.js can later call:
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === AUTO_SCAN_ALARM) {
+    scanOpenTabs();
+  }
+});
 
-  chrome.runtime.sendMessage({
-    type: "EXAMPLE_MESSAGE",
-    payload: {}
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === "complete" && isScannableUrl(tab.url)) {
+    requestTabScan(tabId);
+  }
+});
+
+chrome.tabs.onActivated.addListener(({ tabId }) => {
+  chrome.tabs.get(tabId, (tab) => {
+    if (!chrome.runtime.lastError && isScannableUrl(tab?.url)) {
+      requestTabScan(tabId);
+    }
   });
-
-*/
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (!message || !message.type) {
-    return;
-  }
-
-  switch (message.type) {
-    case "EXAMPLE_MESSAGE": {
-      console.log("Received EXAMPLE_MESSAGE", message.payload);
-
-      sendResponse({
-        ok: true,
-        message: "Background received the message."
-      });
-
-      break;
-    }
-
-    default: {
-      console.warn("Unknown message type:", message.type);
-
-      sendResponse({
-        ok: false,
-        message: "Unknown message type."
-      });
-    }
-  }
-
-  /*
-    Return true only if you plan to respond asynchronously.
-    This framework responds synchronously, so no return value is needed.
-  */
 });
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName === "local" && changes[ASSIGNMENTS_KEY]) {
+    updateBadge();
+  }
+});
+
+function ensureAutoScanAlarm() {
+  chrome.alarms.create(AUTO_SCAN_ALARM, {
+    delayInMinutes: 1,
+    periodInMinutes: AUTO_SCAN_PERIOD_MINUTES
+  });
+}
+
+function scanOpenTabs() {
+  chrome.tabs.query({ url: "https://*/*" }, (tabs) => {
+    if (chrome.runtime.lastError || !Array.isArray(tabs)) {
+      return;
+    }
+
+    for (const tab of tabs) {
+      if (tab.id && isScannableUrl(tab.url)) {
+        requestTabScan(tab.id);
+      }
+    }
+  });
+}
+
+function requestTabScan(tabId, attempt = 0) {
+  chrome.tabs.sendMessage(tabId, { type: "CDT_SCAN_NOW", silent: true }, () => {
+    if (chrome.runtime.lastError && attempt < 2) {
+      setTimeout(() => requestTabScan(tabId, attempt + 1), 1000);
+    }
+  });
+}
+
+function isScannableUrl(url) {
+  return typeof url === "string" && url.startsWith("https://");
+}
+
+async function updateBadge() {
+  const result = await chrome.storage.local.get({ [ASSIGNMENTS_KEY]: {} });
+  const assignments = Object.values(result[ASSIGNMENTS_KEY] || {});
+  const openCount = assignments.filter((assignment) => !assignment.submitted).length;
+  const overdueCount = assignments.filter((assignment) => {
+    if (assignment.submitted || !assignment.dueISO) {
+      return false;
+    }
+    return new Date(assignment.dueISO).getTime() < Date.now();
+  }).length;
+
+  chrome.action.setBadgeText({ text: openCount ? String(openCount) : "" });
+  chrome.action.setBadgeBackgroundColor({
+    color: overdueCount ? "#991b1b" : "#0f766e"
+  });
+}

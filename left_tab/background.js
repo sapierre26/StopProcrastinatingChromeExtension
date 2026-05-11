@@ -71,6 +71,9 @@ function isScannableUrl(url) {
   return typeof url === "string" && url.startsWith("https://");
 }
 
+/*
+* Updates the visual tab
+*/
 async function updateBadge() {
   const result = await chrome.storage.local.get({ [ASSIGNMENTS_KEY]: {} });
   const assignments = Object.values(result[ASSIGNMENTS_KEY] || {});

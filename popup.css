@@ -154,3 +154,381 @@ body {
   color: var(--muted-text-color);
   font-size: 13px;
 }
+/* Canvas tracker tab */
+button {
+  appearance: none;
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+}
+
+.canvas-tracker.shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.tracker-header {
+  align-items: center;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 12px;
+}
+
+.tracker-header h2 {
+  font-size: 16px;
+  line-height: 1.2;
+  margin: 0 0 4px;
+}
+
+.tracker-header p {
+  color: #64748b;
+  font-size: 12px;
+  line-height: 1.3;
+  margin: 0;
+}
+
+.iconButton {
+  align-items: center;
+  background: #0f766e;
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 18px;
+  height: 38px;
+  justify-content: center;
+  width: 38px;
+}
+
+.summary {
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.summary div {
+  border-right: 1px solid #e5e7eb;
+  padding: 10px 12px;
+}
+
+.summary div:last-child {
+  border-right: 0;
+}
+
+.summary span {
+  display: block;
+  font-size: 20px;
+  font-weight: 750;
+  line-height: 1.1;
+}
+
+.summary small {
+  color: #64748b;
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.filters {
+  background: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  display: grid;
+  gap: 6px;
+  grid-template-columns: repeat(4, 1fr);
+  padding: 10px;
+}
+
+.filter {
+  background: transparent;
+  border-radius: 7px;
+  color: #475569;
+  font-size: 12px;
+  font-weight: 650;
+  min-height: 32px;
+  padding: 7px 8px;
+}
+
+.filter.isActive {
+  background: #111827;
+  color: #ffffff;
+}
+
+.assignments {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  max-height: 280px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.assignment {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.assignmentHeader {
+  align-items: flex-start;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.assignmentTitle {
+  color: #111827;
+  display: block;
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+  text-decoration: none;
+}
+
+.assignmentTitle:hover {
+  text-decoration: underline;
+}
+
+.status {
+  border-radius: 999px;
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-weight: 750;
+  line-height: 1;
+  padding: 5px 7px;
+  text-transform: capitalize;
+}
+
+.status.submitted,
+.status.returned,
+.status.graded {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status.missing,
+.status.overdue {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status.assigned,
+.status.due,
+.status.unsubmitted {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.meta {
+  color: #475569;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.35;
+  margin-top: 8px;
+}
+
+.empty {
+  align-items: center;
+  color: #64748b;
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  padding: 32px;
+  text-align: center;
+}
+
+.empty strong {
+  color: #111827;
+  font-size: 14px;
+}
+
+.empty span {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.footer {
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  padding: 12px;
+}
+
+.footer button {
+  background: #e2e8f0;
+  border-radius: 8px;
+  color: #111827;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 36px;
+  padding: 8px 10px;
+}
+
+.footer button:first-child {
+  background: #0f766e;
+  color: #ffffff;
+}
+
+/* Farm tab */
+.farm-container {
+  padding: 8px;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.farm-container h2 {
+  margin: 0 0 12px;
+  font-size: 18px;
+  color: #3f7d3f;
+}
+
+.farm-scene {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  border: 4px solid #5fa85f;
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(#8ed8ff 0%, #b8ecff 55%, #78c850 56%, #4caf50 100%);
+}
+
+.farm-scene.sunny {
+  background: linear-gradient(#8ed8ff 0%, #b8ecff 55%, #78c850 56%, #4caf50 100%);
+}
+
+.farm-scene.cloudy {
+  background: linear-gradient(#bfc7d1 0%, #d8dde3 55%, #78c850 56%, #4caf50 100%);
+}
+
+.farm-scene.rainy {
+  background: linear-gradient(#6f8799 0%, #aab7c4 55%, #5da85b 56%, #3e8f3e 100%);
+}
+
+.farm-scene.stormy {
+  background: linear-gradient(#2f3b46 0%, #5f6b78 55%, #4f8a4f 56%, #2f6f2f 100%);
+}
+
+.weather-icon {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  font-size: 42px;
+  z-index: 3;
+}
+
+.cloud {
+  position: absolute;
+  background: white;
+  border-radius: 50px;
+  opacity: 0.9;
+}
+
+.cloud::before,
+.cloud::after {
+  content: "";
+  position: absolute;
+  background: white;
+  border-radius: 50%;
+}
+
+.cloud-one {
+  width: 90px;
+  height: 32px;
+  top: 45px;
+  left: 30px;
+}
+
+.cloud-one::before {
+  width: 42px;
+  height: 42px;
+  top: -20px;
+  left: 10px;
+}
+
+.cloud-one::after {
+  width: 50px;
+  height: 50px;
+  top: -26px;
+  left: 35px;
+}
+
+.cloud-two {
+  width: 70px;
+  height: 26px;
+  top: 85px;
+  right: 35px;
+}
+
+.cloud-two::before {
+  width: 34px;
+  height: 34px;
+  top: -16px;
+  left: 8px;
+}
+
+.cloud-two::after {
+  width: 40px;
+  height: 40px;
+  top: -20px;
+  left: 30px;
+}
+
+.alpaca-pen {
+  position: absolute;
+  bottom: 52px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+}
+
+.alpaca {
+  font-size: 82px;
+}
+
+.accessory {
+  font-size: 34px;
+  margin-bottom: -20px;
+  position: relative;
+  z-index: 5;
+}
+
+.grass {
+  position: absolute;
+  bottom: 0;
+  width: 100%;
+  height: 65px;
+  background: repeating-linear-gradient(90deg, #3fa83f, #3fa83f 8px, #4fbd4f 8px, #4fbd4f 16px);
+}
+
+.farm-info {
+  margin-top: 12px;
+  background: #f1ffe8;
+  border: 2px solid #9bd48f;
+  border-radius: 14px;
+  padding: 10px;
+}
+
+#farmMessage {
+  font-weight: bold;
+  margin: 4px 0;
+}
+
+#assignmentInfo {
+  font-size: 13px;
+  margin: 4px 0;
+}

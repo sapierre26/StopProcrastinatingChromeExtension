@@ -3,33 +3,28 @@ import { initializeTabTwo } from "./right_tab/tabTwo.js";
 
 window.EXTENSION_CONFIG = {
   popupWidth: 420,
-  popupHeight: 520,
+  popupHeight: 560,
   defaultTabId: "tab-one"
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
   applyPopupSize();
 
-  await loadTabContent();
-
-  initializeTabs();
-
-  initializeTabOne();
-  initializeTabTwo();
+  try {
+    await loadTabContent();
+    initializeTabs();
+    initializeTabOne(document.querySelector("#tab-one"));
+    initializeTabTwo(document.querySelector("#tab-two"));
+  } catch (error) {
+    console.error("Popup failed to initialize", error);
+    document.body.textContent = "The popup failed to load. Open the extension console for details.";
+  }
 });
 
 function applyPopupSize() {
   const { popupWidth, popupHeight } = window.EXTENSION_CONFIG;
-
-  document.documentElement.style.setProperty(
-    "--popup-width",
-    `${popupWidth}px`
-  );
-
-  document.documentElement.style.setProperty(
-    "--popup-height",
-    `${popupHeight}px`
-  );
+  document.documentElement.style.setProperty("--popup-width", `${popupWidth}px`);
+  document.documentElement.style.setProperty("--popup-height", `${popupHeight}px`);
 }
 
 async function loadTabContent() {
@@ -58,8 +53,7 @@ function initializeTabs() {
 
   tabButtons.forEach((button) => {
     button.addEventListener("click", () => {
-      const targetTabId = button.dataset.tabTarget;
-      activateTab(targetTabId);
+      activateTab(button.dataset.tabTarget);
     });
   });
 
@@ -67,16 +61,11 @@ function initializeTabs() {
 }
 
 function activateTab(tabId) {
-  const tabButtons = document.querySelectorAll(".tab-button");
-  const tabPanels = document.querySelectorAll(".tab-panel");
-
-  tabButtons.forEach((button) => {
-    const isActive = button.dataset.tabTarget === tabId;
-    button.classList.toggle("active", isActive);
+  document.querySelectorAll(".tab-button").forEach((button) => {
+    button.classList.toggle("active", button.dataset.tabTarget === tabId);
   });
 
-  tabPanels.forEach((panel) => {
-    const isActive = panel.id === tabId;
-    panel.classList.toggle("active", isActive);
+  document.querySelectorAll(".tab-panel").forEach((panel) => {
+    panel.classList.toggle("active", panel.id === tabId);
   });
 }

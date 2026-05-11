@@ -1,3 +1,45 @@
-<div class="tab-content">
-  <h2>Canvas integration (TO-DO)</h2>
+<div class="canvas-tracker shell">
+  <header class="tracker-header">
+    <div>
+      <h2>Canvas Tracker</h2>
+      <p id="lastScan">No scans yet</p>
+    </div>
+    <button id="rescanButton" class="iconButton" type="button" title="Scan the current Canvas tab" aria-label="Scan the current Canvas tab">
+      <span aria-hidden="true">&#8635;</span>
+    </button>
+  </header>
+
+  <section class="summary" aria-label="Assignment totals">
+    <div>
+      <span id="openCount">0</span>
+      <small>Open</small>
+    </div>
+    <div>
+      <span id="submittedCount">0</span>
+      <small>Submitted</small>
+    </div>
+    <div>
+      <span id="overdueCount">0</span>
+      <small>Overdue</small>
+    </div>
+  </section>
+
+  <nav class="filters" aria-label="Assignment filters">
+    <button class="filter isActive" type="button" data-filter="all">All</button>
+    <button class="filter" type="button" data-filter="open">Open</button>
+    <button class="filter" type="button" data-filter="submitted">Submitted</button>
+    <button class="filter" type="button" data-filter="overdue">Overdue</button>
+  </nav>
+
+  <section id="emptyState" class="empty" hidden>
+    <strong>No assignments saved yet.</strong>
+    <span>Open Canvas and it will scan automatically. You can also click refresh while a Canvas tab is active.</span>
+  </section>
+
+  <ol id="assignmentList" class="assignments" aria-label="Tracked assignments"></ol>
+
+  <footer class="footer">
+    <button id="exportButton" type="button">Export CSV</button>
+    <button id="clearButton" type="button">Clear</button>
+  </footer>
 </div>
