@@ -15,13 +15,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     initializeTabs();
     initializeTabOne(document.querySelector("#tab-one"));
     initializeTabTwo(document.querySelector("#tab-two"));
-
-    const expandButton = document.getElementById('expandBtn');
-    expandButton?.addEventListener('click', () => {
-      chrome.runtime.sendMessage({ action: 'openFullscreen' }, () => {
-        window.close();
-      });
-    });
   } catch (error) {
     console.error("Popup failed to initialize", error);
     document.body.textContent = "The popup failed to load. Open the extension console for details.";

@@ -7,7 +7,7 @@ document.getElementById("minimizeBtn").addEventListener("click", async () => {
   const currentWindow = await chrome.windows.getCurrent();
 
   chrome.windows.update(currentWindow.id, {
-    state: "minimized"
+    state: "maximized"
   });
 
 });
