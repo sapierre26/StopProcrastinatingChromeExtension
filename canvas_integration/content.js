@@ -6,6 +6,17 @@
   const LOOKBACK_DAYS = 14;
   const LOOKAHEAD_DAYS = 30;
   const MAX_API_PAGES = 1;
+  const DATA_FILTER_VERSION = "submittable_assignments_v1";
+  const CANVAS_SUBMISSION_TYPES = new Set([
+    "discussion_topic",
+    "external_tool",
+    "media_recording",
+    "online_quiz",
+    "online_text_entry",
+    "online_upload",
+    "online_url",
+    "student_annotation"
+  ]);
 
   console.log("Running the Alpaca extension canvas_integration script");
 
@@ -31,7 +42,8 @@
       const plannerItems = await fetchPlannerItems();
       const normalizedAssignments = plannerItems
         .map(normalizePlannerItem)
-        .filter(Boolean);
+        .filter(Boolean)
+        .filter(isAssignmentOpenForSubmissions);
 
       // FOLLOW-UP: `normalizedAssignments` is the assignment data returned by Canvas
       // after we normalize it for the popup/farm. Add custom processing here if you
@@ -51,6 +63,10 @@
     const result = await chrome.storage.local.get({ [LAST_SCAN_KEY]: null });
     const lastScan = result[LAST_SCAN_KEY];
     const lastScanTime = lastScan?.at ? new Date(lastScan.at).getTime() : 0;
+
+    if (lastScan?.filterVersion !== DATA_FILTER_VERSION) {
+      return true;
+    }
 
     if (!Number.isFinite(lastScanTime) || lastScanTime <= 0) {
       return true;
@@ -117,6 +133,8 @@
 
     const dueISO = assignment.due_at || assignment.todo_date || item.plannable_date || null;
     const submission = item.submissions && typeof item.submissions === "object" ? item.submissions : {};
+    const submissionTypes = getSubmissionTypes(assignment);
+    const submissionAvailability = getSubmissionAvailability(assignment, submissionTypes);
     const statusInfo = getSubmissionStatus(submission, dueISO);
     const now = new Date().toISOString();
 
@@ -133,12 +151,71 @@
       grade: submission.grade ?? assignment.grade ?? null,
       late: Boolean(submission.late),
       missing: Boolean(submission.missing),
+      submissionTypes,
+      canSubmit: submissionAvailability.canSubmit,
+      submissionUnavailableReason: submissionAvailability.reason,
+      lockedForUser: Boolean(assignment.locked_for_user),
+      unlockAt: assignment.unlock_at || null,
+      lockAt: assignment.lock_at || null,
       sourceUrl: makeAbsoluteUrl(item.html_url || assignment.html_url || `/courses/${courseId}/assignments/${assignmentId}`),
       pageUrl: location.href,
       source: "canvas_planner_api",
       foundAt: now,
       lastSeenAt: now
     };
+  }
+
+  function isAssignmentOpenForSubmissions(assignment) {
+    return Boolean(assignment?.canSubmit);
+  }
+
+  function getSubmissionTypes(assignment) {
+    if (!Array.isArray(assignment.submission_types)) {
+      return [];
+    }
+
+    return assignment.submission_types
+      .map((type) => String(type || "").toLowerCase())
+      .filter(Boolean);
+  }
+
+  function getSubmissionAvailability(assignment, submissionTypes) {
+    if (typeof assignment.can_submit === "boolean") {
+      return {
+        canSubmit: assignment.can_submit,
+        reason: assignment.can_submit ? null : "canvas_can_submit_false"
+      };
+    }
+
+    if (!submissionTypes.some((type) => CANVAS_SUBMISSION_TYPES.has(type))) {
+      return { canSubmit: false, reason: "no_canvas_submission_type" };
+    }
+
+    if (assignment.locked_for_user) {
+      return { canSubmit: false, reason: "locked_for_user" };
+    }
+
+    const now = Date.now();
+    const unlockTime = parseCanvasTime(assignment.unlock_at);
+    if (unlockTime && unlockTime > now) {
+      return { canSubmit: false, reason: "not_unlocked_yet" };
+    }
+
+    const lockTime = parseCanvasTime(assignment.lock_at);
+    if (lockTime && lockTime <= now) {
+      return { canSubmit: false, reason: "locked_after_lock_at" };
+    }
+
+    return { canSubmit: true, reason: null };
+  }
+
+  function parseCanvasTime(value) {
+    if (!value) {
+      return null;
+    }
+
+    const time = new Date(value).getTime();
+    return Number.isFinite(time) ? time : null;
   }
 
   function getSubmissionStatus(submission, dueISO) {
@@ -170,10 +247,10 @@
     const now = new Date().toISOString();
     const result = await chrome.storage.local.get({ [ASSIGNMENTS_KEY]: {} });
     const existingAssignments = result[ASSIGNMENTS_KEY] || {};
-    const nextAssignments = { ...existingAssignments };
+    const nextAssignments = {};
 
     for (const assignment of assignments) {
-      const previous = nextAssignments[assignment.id] || {};
+      const previous = existingAssignments[assignment.id] || {};
       nextAssignments[assignment.id] = {
         ...previous,
         ...assignment,
@@ -182,6 +259,9 @@
       };
     }
 
+    // This replaces the Canvas assignment cache with the latest submittable
+    // assignments. That intentionally removes old cached items that Canvas now
+    // reports as non-submittable, locked, or outside the scan window.
     // This is extension-local storage, not window.localStorage. The popup and
     // content script can both access chrome.storage.local, while normal
     // window.localStorage would be separated by website/extension origin.
@@ -194,6 +274,7 @@
         host: location.hostname,
         found: assignments.length,
         source: "canvas_integration",
+        filterVersion: DATA_FILTER_VERSION,
         status: "ok"
       }
     });
@@ -207,6 +288,7 @@
         host: location.hostname,
         found: 0,
         source: "canvas_integration",
+        filterVersion: DATA_FILTER_VERSION,
         status: "started"
       }
     });
@@ -221,6 +303,7 @@
         host: location.hostname,
         found: 0,
         source: "canvas_integration",
+        filterVersion: DATA_FILTER_VERSION,
         status: "error",
         error: error?.message || "Unknown Canvas scan error"
       }

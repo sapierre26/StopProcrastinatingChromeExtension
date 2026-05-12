@@ -95,8 +95,7 @@ export function initializeTabOne(root = document) {
     meta.className = "meta";
     meta.append(
       makeMetaLine("Due", formatDue(assignment)),
-      makeMetaLine("Course", assignment.course || "Canvas"),
-      makeMetaLine("Seen", formatRelative(assignment.lastSeenAt))
+      makeMetaLine("Course", assignment.course || "Canvas")
     );
 
     header.append(title, status);

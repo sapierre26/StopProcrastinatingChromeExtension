@@ -190,6 +190,10 @@ body.fullscreen {
   font-size: 13px;
 }
 /* Canvas tracker tab */
+
+.canvas-tracker [hidden] {
+  display: none !important;
+}
 button {
   appearance: none;
   border: 0;
