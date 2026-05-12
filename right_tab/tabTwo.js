@@ -77,14 +77,12 @@ export function initializeTabTwo(root = document) {
 
     let weather = "cloudy";
     if (grade !== null) {
-      if (grade >= 90) {
+      if (grade >= 90) { // A
         weather = "sunny";
-      } else if (grade >= 75) {
+      } else if (grade >= 75) { // B or C
         weather = "cloudy";
-      } else if (grade >= 60) {
+      } else { // D or F
         weather = "rainy";
-      } else {
-        weather = "stormy";
       }
     } else if (turnedInOnTime) {
       weather = "sunny";
@@ -106,7 +104,6 @@ export function initializeTabTwo(root = document) {
   function weatherEmoji(weather) {
     if (weather === "sunny") return "☀️";
     if (weather === "rainy") return "🌧️";
-    if (weather === "stormy") return "⛈️";
     return "☁️";
   }
 

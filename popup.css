@@ -455,10 +455,6 @@ button {
   background: linear-gradient(#6f8799 0%, #aab7c4 55%, #5da85b 56%, #3e8f3e 100%);
 }
 
-.farm-scene.stormy {
-  background: linear-gradient(#2f3b46 0%, #5f6b78 55%, #4f8a4f 56%, #2f6f2f 100%);
-}
-
 .farm-background {
   width: 100%;
   height: 100%;
