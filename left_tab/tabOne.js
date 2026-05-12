@@ -98,15 +98,129 @@ export function initializeTabOne(root = document) {
       makeMetaLine("Course", assignment.course || "Canvas")
     );
 
+    const rewardDeadlines = renderAntiProcrastinationDeadlines(assignment);
+
     header.append(title, status);
-    item.append(header, meta);
+    item.append(header, meta, rewardDeadlines);
     return item;
+  }
+
+  function renderAntiProcrastinationDeadlines(assignment) {
+    const container = document.createElement("section");
+    container.className = "antiDeadlines";
+    container.setAttribute("aria-label", "Anti-procrastination reward deadlines");
+
+    const title = document.createElement("strong");
+    title.className = "antiDeadlinesTitle";
+    title.textContent = "Anti-procrastination reward deadlines";
+    container.appendChild(title);
+
+    const dueDate = parseDate(assignment.dueISO);
+    if (!dueDate) {
+      const missing = document.createElement("p");
+      missing.className = "antiDeadlineMissing";
+      missing.textContent = "Canvas did not provide a due date, so reward deadlines cannot be calculated yet.";
+      container.appendChild(missing);
+      return container;
+    }
+
+    const submittedAt = parseDate(assignment.submittedAt);
+    const tiers = [
+      {
+        label: "Gold",
+        className: "gold",
+        hoursBeforeDue: 48,
+        rewardText: "Best reward: finish at least 48 hours early."
+      },
+      {
+        label: "Silver",
+        className: "silver",
+        hoursBeforeDue: 24,
+        rewardText: "Solid reward: finish at least 24 hours early."
+      },
+      {
+        label: "Bronze",
+        className: "bronze",
+        hoursBeforeDue: 1,
+        rewardText: "Last-call reward: finish at least 1 hour early."
+      }
+    ];
+
+    const list = document.createElement("div");
+    list.className = "antiDeadlineList";
+
+    for (const tier of tiers) {
+      const deadline = new Date(dueDate.getTime() - tier.hoursBeforeDue * 60 * 60 * 1000);
+      const earned = Boolean(submittedAt && submittedAt.getTime() <= deadline.getTime());
+      const submittedAfterDeadline = Boolean(submittedAt && submittedAt.getTime() > deadline.getTime());
+      const submittedButTimeUnknown = Boolean(assignment.submitted && !submittedAt);
+      const passed = !earned && deadline.getTime() < Date.now();
+
+      const card = document.createElement("div");
+      card.className = `antiDeadline antiDeadline-${tier.className}`;
+      if (earned) {
+        card.classList.add("isEarned");
+      } else if (passed || submittedAfterDeadline) {
+        card.classList.add("isPassed");
+      }
+
+      const badge = document.createElement("span");
+      badge.className = "antiDeadlineBadge";
+      badge.textContent = tier.label;
+
+      const details = document.createElement("div");
+      details.className = "antiDeadlineDetails";
+
+      const dueLine = document.createElement("span");
+      dueLine.className = "antiDeadlineTime";
+      dueLine.textContent = `${getRewardDeadlinePrefix({ earned, submittedAfterDeadline, submittedButTimeUnknown, passed })} ${formatDateTime(deadline)}`;
+
+      const blurb = document.createElement("small");
+      blurb.className = "antiDeadlineBlurb";
+      blurb.textContent = getRewardBlurb({ tier, earned, submittedAfterDeadline, submittedButTimeUnknown });
+
+      details.append(dueLine, blurb);
+      card.append(badge, details);
+      list.appendChild(card);
+    }
+
+    container.appendChild(list);
+    return container;
   }
 
   function makeMetaLine(label, value) {
     const line = document.createElement("span");
     line.textContent = `${label}: ${value}`;
     return line;
+  }
+
+  function getRewardDeadlinePrefix({ earned, submittedAfterDeadline, submittedButTimeUnknown, passed }) {
+    if (earned) {
+      return "Earned by";
+    }
+    if (submittedAfterDeadline) {
+      return "Missed reward deadline";
+    }
+    if (submittedButTimeUnknown) {
+      return "Reward deadline";
+    }
+    if (passed) {
+      return "Was due by";
+    }
+    return "Finish by";
+  }
+
+  function getRewardBlurb({ tier, earned, submittedAfterDeadline, submittedButTimeUnknown }) {
+    if (earned) {
+      return `Reward earned: submitted in time for the ${tier.label.toLowerCase()} anti-procrastination reward.`;
+    }
+    if (submittedAfterDeadline) {
+      return `Submitted after this checkpoint, so the ${tier.label.toLowerCase()} reward was missed.`;
+    }
+    if (submittedButTimeUnknown) {
+      return `Canvas says this is submitted, but it did not include the submission time needed to confirm the ${tier.label.toLowerCase()} reward.`;
+    }
+    return `${tier.rewardText} Get it done by then to earn the ${tier.label.toLowerCase()} anti-procrastination reward.`;
   }
 
   function sortAssignments(a, b) {
@@ -141,19 +255,32 @@ export function initializeTabOne(root = document) {
       return assignment.dueText || "Unknown";
     }
 
-    const due = new Date(assignment.dueISO);
-    if (Number.isNaN(due.getTime())) {
+    const due = parseDate(assignment.dueISO);
+    if (!due) {
       return assignment.dueText || "Unknown";
     }
 
-    return `${due.toLocaleDateString([], {
+    return formatDateTime(due);
+  }
+
+  function formatDateTime(date) {
+    return `${date.toLocaleDateString([], {
       month: "short",
       day: "numeric",
       year: "numeric"
-    })}, ${due.toLocaleTimeString([], {
+    })}, ${date.toLocaleTimeString([], {
       hour: "numeric",
       minute: "2-digit"
     })}`;
+  }
+
+  function parseDate(value) {
+    if (!value) {
+      return null;
+    }
+
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   function formatRelative(value) {

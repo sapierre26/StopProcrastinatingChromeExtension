@@ -6,7 +6,7 @@
   const LOOKBACK_DAYS = 14;
   const LOOKAHEAD_DAYS = 30;
   const MAX_API_PAGES = 1;
-  const DATA_FILTER_VERSION = "submittable_assignments_v1";
+  const DATA_FILTER_VERSION = "submittable_assignments_v2_keep_unknown_submission_types";
   const CANVAS_SUBMISSION_TYPES = new Set([
     "discussion_topic",
     "external_tool",
@@ -40,10 +40,19 @@
       // Minimum read-only Canvas request for this extension:
       // one Planner API request scoped to the logged-in user and a small date window.
       const plannerItems = await fetchPlannerItems();
-      const normalizedAssignments = plannerItems
+      const normalizedPlannerItems = plannerItems
         .map(normalizePlannerItem)
-        .filter(Boolean)
-        .filter(isAssignmentOpenForSubmissions);
+        .filter(Boolean);
+      const normalizedAssignments = normalizedPlannerItems.filter(isAssignmentOpenForSubmissions);
+
+      console.log(
+        "[Canvas Integration] Planner items fetched:",
+        plannerItems.length,
+        "Assignments kept:",
+        normalizedAssignments.length,
+        "Assignments removed:",
+        normalizedPlannerItems.length - normalizedAssignments.length
+      );
 
       // FOLLOW-UP: `normalizedAssignments` is the assignment data returned by Canvas
       // after we normalize it for the popup/farm. Add custom processing here if you
@@ -72,7 +81,13 @@
       return true;
     }
 
-    return Date.now() - lastScanTime >= MIN_SCAN_INTERVAL_MS;
+    const enoughTimeElapsed = Date.now() - lastScanTime >= MIN_SCAN_INTERVAL_MS;
+
+    if (!enoughTimeElapsed) {
+      console.log("[Canvas Integration] Skipping Canvas scan because the 5-minute cooldown is still active.");
+    }
+
+    return enoughTimeElapsed;
   }
 
   async function fetchPlannerItems() {
@@ -133,8 +148,8 @@
 
     const dueISO = assignment.due_at || assignment.todo_date || item.plannable_date || null;
     const submission = item.submissions && typeof item.submissions === "object" ? item.submissions : {};
-    const submissionTypes = getSubmissionTypes(assignment);
-    const submissionAvailability = getSubmissionAvailability(assignment, submissionTypes);
+    const submissionTypesInfo = getSubmissionTypes(assignment);
+    const submissionAvailability = getSubmissionAvailability(assignment, submissionTypesInfo);
     const statusInfo = getSubmissionStatus(submission, dueISO);
     const now = new Date().toISOString();
 
@@ -151,7 +166,8 @@
       grade: submission.grade ?? assignment.grade ?? null,
       late: Boolean(submission.late),
       missing: Boolean(submission.missing),
-      submissionTypes,
+      submissionTypes: submissionTypesInfo.values,
+      submissionTypesKnown: submissionTypesInfo.known,
       canSubmit: submissionAvailability.canSubmit,
       submissionUnavailableReason: submissionAvailability.reason,
       lockedForUser: Boolean(assignment.locked_for_user),
@@ -166,28 +182,38 @@
   }
 
   function isAssignmentOpenForSubmissions(assignment) {
-    return Boolean(assignment?.canSubmit);
+    // Important: the Planner API may not always include the full Assignment
+    // object fields, including `submission_types` or `can_submit`. In that
+    // case, do not drop the assignment. Only remove items when Canvas
+    // explicitly tells us they have no online submission path.
+    return assignment?.canSubmit !== false;
   }
 
   function getSubmissionTypes(assignment) {
     if (!Array.isArray(assignment.submission_types)) {
-      return [];
+      return { known: false, values: [] };
     }
 
-    return assignment.submission_types
-      .map((type) => String(type || "").toLowerCase())
-      .filter(Boolean);
+    return {
+      known: true,
+      values: assignment.submission_types
+        .map((type) => String(type || "").toLowerCase())
+        .filter(Boolean)
+    };
   }
 
-  function getSubmissionAvailability(assignment, submissionTypes) {
-    if (typeof assignment.can_submit === "boolean") {
+  function getSubmissionAvailability(assignment, submissionTypesInfo) {
+    if (typeof assignment.can_submit === "boolean" && assignment.can_submit) {
       return {
-        canSubmit: assignment.can_submit,
-        reason: assignment.can_submit ? null : "canvas_can_submit_false"
+        canSubmit: true,
+        reason: null
       };
     }
 
-    if (!submissionTypes.some((type) => CANVAS_SUBMISSION_TYPES.has(type))) {
+    const submissionTypes = submissionTypesInfo.values;
+    const hasCanvasSubmissionType = submissionTypes.some((type) => CANVAS_SUBMISSION_TYPES.has(type));
+
+    if (submissionTypesInfo.known && !hasCanvasSubmissionType) {
       return { canSubmit: false, reason: "no_canvas_submission_type" };
     }
 
@@ -206,6 +232,10 @@
       return { canSubmit: false, reason: "locked_after_lock_at" };
     }
 
+    // If Canvas gave us `can_submit: false` but did not also give us a clear
+    // non-submittable `submission_types` value, keep the assignment. That false
+    // can mean things other than "this assignment has no submission option"
+    // depending on availability, attempts, submission state, or permissions.
     return { canSubmit: true, reason: null };
   }
 
