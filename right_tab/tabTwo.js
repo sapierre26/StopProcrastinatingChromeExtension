@@ -2,9 +2,10 @@ const ASSIGNMENTS_KEY = "canvas_due_tracker_assignments";
 
 export function initializeTabTwo(root = document) {
   const elements = {
-    farmScene: root.querySelector("#farmScene"),
+    farmScene: root.querySelector(".farm-scene"),
     weatherIcon: root.querySelector("#weatherIcon"),
     accessory: root.querySelector("#accessory"),
+    alpacaContainer: root.querySelector("#alpaca-container"),
     alpaca: root.querySelector("#alpaca"),
     farmMessage: root.querySelector("#farmMessage"),
     assignmentInfo: root.querySelector("#assignmentInfo")
@@ -31,6 +32,9 @@ export function initializeTabTwo(root = document) {
 
   function renderFarm(assignments) {
     const rewardSource = chooseRewardAssignment(assignments);
+    const submittedAssignments = assignments.filter(a => a.submitted);
+
+    renderAnimals(submittedAssignments, elements.alpacaContainer);
 
     if (!rewardSource) {
       applyReward({ earnedAlpaca: false, accessory: "", weather: "cloudy" });
@@ -96,7 +100,6 @@ export function initializeTabTwo(root = document) {
   function applyReward(reward) {
     elements.farmScene.className = `farm-scene ${reward.weather}`;
     elements.weatherIcon.textContent = weatherEmoji(reward.weather);
-    elements.alpaca.textContent = reward.earnedAlpaca ? "🦙" : "🌱";
     elements.accessory.textContent = reward.earnedAlpaca ? reward.accessory : "";
   }
 
@@ -117,5 +120,24 @@ export function initializeTabTwo(root = document) {
     if (value === null || value === undefined || value === "") return null;
     const match = String(value).match(/\d+(?:\.\d+)?/);
     return match ? Number(match[0]) : null;
+  }
+
+  function renderAnimals(assignments, alpacaContainer) {
+    alpacaContainer.innerHTML = "";
+
+    assignments.forEach((assignment, index) => {
+      const animal = document.createElement("img");
+
+      animal.src = chrome.runtime.getURL("images/animal_assets/alpaca.png");
+      animal.className = "farm-animal";
+
+      // random spawn positions
+      animal.style.left = `${Math.random() * 75}%`;
+      animal.style.top = `${55 + Math.random() * 25}%`;
+
+      animal.title = assignment.title;
+
+      alpacaContainer.appendChild(animal);
+    });
   }
 }
