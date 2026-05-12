@@ -24,7 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 document.getElementById("expandBtn").addEventListener("click", async () => {
 
   chrome.windows.create({
-    url: chrome.runtime.getURL("fullscreen.html"),
+    url: chrome.runtime.getURL("expanded.html"),
     type: "popup",
 
     width: 1200,

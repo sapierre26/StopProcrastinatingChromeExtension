@@ -17,7 +17,7 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'openFullscreen') {
     chrome.windows.create({
-      url: chrome.runtime.getURL('fullscreen.html'),
+      url: chrome.runtime.getURL('expanded.html'),
       type: 'normal',
       width: 1200,
       height: 800
@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true;
   } else if (request.action === 'openCompact') {
     chrome.windows.create({
-      url: chrome.runtime.getURL('fullscreen.html'),
+      url: chrome.runtime.getURL('expanded.html'),
       type: 'popup',
       width: 420,
       height: 560
