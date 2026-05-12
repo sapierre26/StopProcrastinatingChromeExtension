@@ -3,7 +3,7 @@
   "name": "Stop Procrastinating: Alpaca Farm",
   "version": "0.1.0",
   "description": "Tracks Canvas assignments from Cal Poly Canvas and turns progress into an alpaca farm.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "windows"],
   "host_permissions": ["https://canvas.calpoly.edu/*"],
   "background": {
     "service_worker": "background.js"

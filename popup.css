@@ -31,6 +31,16 @@ body {
   background: var(--background-color);
 }
 
+html.fullscreen,
+body.fullscreen {
+  width: 100vw;
+  height: 100vh;
+}
+
+.fullscreen .app-shell {
+  min-height: calc(100vh - 70px);
+}
+
 .app-shell {
   width: 100%;
   height: 100%;
@@ -41,6 +51,31 @@ body {
 .app-header {
   padding: var(--spacing-lg);
   border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.app-header .header-title {
+  min-width: 0;
+}
+
+.expand-button {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: transparent;
+  color: var(--text-color);
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.expand-button:hover {
+  background: var(--surface-color);
 }
 
 .app-header h1 {
