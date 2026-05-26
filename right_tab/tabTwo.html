@@ -1,5 +1,10 @@
 <div class="farm-container">
-  <h2>The Farm</h2>
+  <div class="farm-header">
+    <h2>The Farm</h2>
+    <button id="shareFarmBtn" class="share-farm-button" type="button">
+      Share
+    </button>
+  </div>
 
   <div id="farmScene" class="farm-scene sunny">
 
@@ -23,5 +28,41 @@
     <p id="assignmentInfo"></p>
     <p id="farmSummary"></p>
     <div id="customizationList" class="customization-list"></div>
+  </div>
+
+  <div
+    id="shareFarmModal"
+    class="share-modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="shareFarmTitle"
+    hidden
+  >
+    <div class="share-modal-card">
+      <h3 id="shareFarmTitle">Add a title for your farm</h3>
+      <p class="share-modal-description">
+        This title will appear above your farm picture.
+      </p>
+
+      <label class="field-label" for="farmTitleInput">Farm title</label>
+      <input
+        id="farmTitleInput"
+        class="text-input"
+        type="text"
+        maxlength="60"
+        placeholder="My Alpaca Farm"
+      />
+
+      <p id="shareStatus" class="share-status" aria-live="polite"></p>
+
+      <div class="share-modal-actions">
+        <button id="cancelShareBtn" class="secondary-button" type="button">
+          Cancel
+        </button>
+        <button id="downloadFarmBtn" class="primary-button" type="button">
+          Download picture
+        </button>
+      </div>
+    </div>
   </div>
 </div>

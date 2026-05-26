@@ -21,19 +21,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-document.getElementById("expandBtn").addEventListener("click", async () => {
+const expandButton = document.getElementById("expandBtn");
 
-  chrome.windows.create({
-    url: chrome.runtime.getURL("expanded.html"),
-    type: "popup",
+if (expandButton) {
+  expandButton.addEventListener("click", async () => {
 
-    width: 1200,
-    height: 900,
+    chrome.windows.create({
+      url: chrome.runtime.getURL("expanded.html"),
+      type: "popup",
 
-    focused: true
+      width: 1200,
+      height: 900,
+
+      focused: true
+    });
+
   });
-
-});
+}
 
 function applyPopupSize() {
   const { popupWidth, popupHeight } = window.EXTENSION_CONFIG;
