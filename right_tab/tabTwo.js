@@ -497,6 +497,7 @@ export function initializeTabTwo(root = document) {
       animal.alt = `Alpaca ${index + 1}`;
       animal.title = `Alpaca ${index + 1}`;
       alpacaContainer.appendChild(animal);
+      startAlpacaWiggle(animal);
     }
 
     if (customizations.length) {
@@ -510,6 +511,16 @@ export function initializeTabTwo(root = document) {
       });
     }
   }
+}
+function startAlpacaWiggle(animal) {
+  setInterval(() => {
+    const moveX = Math.floor(Math.random() * 21) - 10;
+    const moveY = Math.floor(Math.random() * 11) - 5;
+    const flip = Math.random() > 0.5 ? -1 : 1;
+
+    animal.style.transform =
+      `translate(${moveX}px, ${moveY}px) scaleX(${flip})`;
+  }, 1800);
 }
 
 function drawImageCover(context, image, x, y, width, height) {

@@ -809,3 +809,9 @@ button {
 .antiDeadline.isEarned {
   box-shadow: inset 0 0 0 1px currentColor;
 }
+.farm-animal {
+  transition: transform 1.6s ease-in-out;
+}
+.farm-animal {
+  transition: transform 1.6s ease-in-out;
+}
