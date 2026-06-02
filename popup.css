@@ -377,6 +377,33 @@ button {
   margin-top: 8px;
 }
 
+.assignmentActions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: flex-start;
+}
+
+.submitAssignmentButton {
+  background: #0f766e;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.submitAssignmentButton:hover {
+  background: #0d5d57;
+}
+
+.submitAssignmentButton:active {
+  background: #0a4a42;
+}
+
 .empty {
   align-items: center;
   color: #64748b;

@@ -100,9 +100,45 @@ export function initializeTabOne(root = document) {
 
     const rewardDeadlines = renderAntiProcrastinationDeadlines(assignment);
 
+    // Add Submit button if assignment is not submitted
+    const actionContainer = document.createElement("div");
+    actionContainer.className = "assignmentActions";
+    if (!assignment.submitted) {
+      const submitButton = document.createElement("button");
+      submitButton.className = "submitAssignmentButton";
+      submitButton.textContent = "Submit";
+      submitButton.setAttribute("aria-label", `Submit assignment: ${assignment.title}`);
+      submitButton.addEventListener("click", async (e) => {
+        e.preventDefault();
+        await handleSubmitAssignment(assignment);
+      });
+      actionContainer.appendChild(submitButton);
+    }
+
     header.append(title, status);
-    item.append(header, meta, rewardDeadlines);
+    item.append(header, meta, actionContainer, rewardDeadlines);
     return item;
+  }
+
+  async function handleSubmitAssignment(assignment) {
+    try {
+      const result = await chrome.storage.local.get({ [ASSIGNMENTS_KEY]: {} });
+      const assignments = result[ASSIGNMENTS_KEY] || {};
+      
+      if (assignments[assignment.id]) {
+        const now = new Date().toISOString();
+        assignments[assignment.id] = {
+          ...assignments[assignment.id],
+          submitted: true,
+          submittedAt: now,
+          status: "submitted"
+        };
+        
+        await chrome.storage.local.set({ [ASSIGNMENTS_KEY]: assignments });
+      }
+    } catch (error) {
+      console.error("Failed to submit assignment:", error);
+    }
   }
 
   function renderAntiProcrastinationDeadlines(assignment) {
