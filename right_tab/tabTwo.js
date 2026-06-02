@@ -96,8 +96,11 @@ export function initializeTabTwo(root = document) {
     handleFarmStateChange({ alpacaCount, customizations, reward: currentReward });
   }
 
-  function renderFarmSummary(alpacaCount, customizations) {
-    elements.farmSummary.textContent = `Your farm has ${alpacaCount} alpaca${alpacaCount === 1 ? "" : "s"} and ${customizations.length} customization item${customizations.length === 1 ? "" : "s"}.`;
+  function renderFarmSummary(alpacaCount, customizations, assignments) {
+    const rewardCounts = getRewardCounts(assignments);
+    const totalRewards = rewardCounts.Gold + rewardCounts.Silver + rewardCounts.Bronze;
+
+    elements.farmSummary.textContent = `Your farm has ${alpacaCount} alpaca${alpacaCount === 1 ? "" : "s"}, ${customizations.length} customization item${customizations.length === 1 ? "" : "s"}, and ${rewardCounts.Gold} Gold, ${rewardCounts.Silver} Silver, ${rewardCounts.Bronze} Bronze reward${totalRewards === 1 ? "" : "s"}.`;
     elements.customizationList.replaceChildren();
 
     if (!customizations.length) {
@@ -330,8 +333,26 @@ export function initializeTabTwo(root = document) {
       }
     }
 
+    const animalAccessories = Array.from(elements.alpacaContainer.querySelectorAll(".animal-accessory"));
+    animalAccessories.forEach((accessory) => drawAnimalAccessory(context, accessory, sceneRect, sceneX, sceneY, sceneWidth, sceneHeight));
+
     const badges = Array.from(elements.alpacaContainer.querySelectorAll(".animal-badge"));
     badges.forEach((badge) => drawBadge(context, badge, sceneRect, sceneX, sceneY, sceneWidth, sceneHeight));
+  }
+
+  function drawAnimalAccessory(context, accessory, sceneRect, sceneX, sceneY, sceneWidth, sceneHeight) {
+    const accessoryText = accessory.textContent.trim();
+
+    if (!accessoryText) {
+      return;
+    }
+
+    const accessoryRect = accessory.getBoundingClientRect();
+    const target = scaleRectIntoScene(accessoryRect, sceneRect, sceneX, sceneY, sceneWidth, sceneHeight);
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.font = `${Math.max(28, target.height)}px Arial, sans-serif`;
+    context.fillText(accessoryText, target.x + target.width / 2, target.y + target.height / 2);
   }
 
   function drawAccessory(context, sceneRect, sceneX, sceneY, sceneWidth, sceneHeight) {
@@ -545,9 +566,6 @@ export function initializeTabTwo(root = document) {
       animal.alt = `Alpaca ${index + 1}`;
       animal.title = `Alpaca ${index + 1}`;
       wrapper.title = animal.title;
-      alpacaContainer.appendChild(animal);
-      startAlpacaWiggle(animal);
-    }
 
       wrapper.addEventListener("click", () => makeAlpacaNoise(wrapper, "scream", index));
       wrapper.addEventListener("keydown", (event) => {
@@ -558,6 +576,7 @@ export function initializeTabTwo(root = document) {
       });
 
       wrapper.appendChild(animal);
+      startAlpacaWiggle(animal);
 
       customizations
         .filter((_, customizationIndex) => customizationIndex % count === index)
@@ -650,6 +669,7 @@ export function initializeTabTwo(root = document) {
       console.warn("Could not play alpaca sound", error);
     });
   }
+
 }
 
 function prepareAlpacaClickSound() {
