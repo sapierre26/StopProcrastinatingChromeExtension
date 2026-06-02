@@ -518,11 +518,102 @@ button {
   inset: 0;
 }
 
+.alpaca-wrapper {
+  position: absolute;
+  width: 86px;
+  height: 86px;
+  cursor: pointer;
+  transition: transform 120ms ease;
+  z-index: 5;
+}
+
+.alpaca-wrapper:hover,
+.alpaca-wrapper:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+  transform: translateY(-3px) scale(1.06);
+}
+
+.alpaca-wrapper.is-making-noise {
+  animation: alpaca-bleat 700ms ease-out;
+}
+
 .farm-animal {
   position: absolute;
+  left: 8px;
+  top: 8px;
   width: 70px;
   height: 70px;
   z-index: 2;
+  pointer-events: none;
+}
+
+@keyframes alpaca-bleat {
+  0% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+
+  18% {
+    transform: translateY(-8px) rotate(-4deg) scale(1.08);
+  }
+
+  36% {
+    transform: translateY(0) rotate(4deg) scale(1.04);
+  }
+
+  56% {
+    transform: translateY(-5px) rotate(-2deg) scale(1.07);
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+}
+
+.animal-accessory {
+  --accessory-offset: 0px;
+  align-items: center;
+  display: inline-flex;
+  justify-content: center;
+  pointer-events: none;
+  position: absolute;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  z-index: 6;
+}
+
+.accessory-scarf {
+  font-size: 24px;
+  left: calc(29px + var(--accessory-offset));
+  top: 45px;
+  transform: rotate(-10deg);
+}
+
+.accessory-banner {
+  font-size: 24px;
+  left: calc(53px + var(--accessory-offset));
+  top: 17px;
+  transform: rotate(9deg);
+}
+
+.accessory-saddle {
+  font-size: 23px;
+  left: calc(37px + var(--accessory-offset));
+  top: 34px;
+  transform: rotate(-6deg);
+}
+
+.accessory-blanket {
+  font-size: 21px;
+  left: calc(30px + var(--accessory-offset));
+  top: 40px;
+  transform: rotate(4deg);
+}
+
+.accessory-party-hat {
+  font-size: 23px;
+  left: calc(34px + var(--accessory-offset));
+  top: 2px;
+  transform: rotate(-12deg);
 }
 
 .animal-badge {
